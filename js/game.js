@@ -1,9 +1,11 @@
+// Forked from: https://github.com/lostdecade/simple_canvas_game
 // Create the canvas
-var canvas = document.createElement("canvas");
+//var canvas = document.createElement("canvas");
+var canvas = document.getElementById('c');
 var ctx = canvas.getContext("2d");
-canvas.width = 512;
-canvas.height = 480;
-document.body.appendChild(canvas);
+//canvas.width = 512;
+//canvas.height = 480;
+//document.body.appendChild(canvas);
 
 // Background image
 var bgReady = false;
@@ -11,7 +13,7 @@ var bgImage = new Image();
 bgImage.onload = function () {
 	bgReady = true;
 };
-bgImage.src = "images/background.png";
+bgImage.src = "images/games/background.png";
 
 // Hero image
 var heroReady = false;
@@ -19,7 +21,7 @@ var heroImage = new Image();
 heroImage.onload = function () {
 	heroReady = true;
 };
-heroImage.src = "images/hero.png";
+heroImage.src = "images/games/hero.png";
 
 // Monster image
 var monsterReady = false;
@@ -27,14 +29,18 @@ var monsterImage = new Image();
 monsterImage.onload = function () {
 	monsterReady = true;
 };
-monsterImage.src = "images/monster.png";
+monsterImage.src = "images/games/monster.png";
 
 // Game objects
-var hero = {
+var hero1 = {
+	speed: 256 // movement in pixels per second
+};
+var hero2 = {
 	speed: 256 // movement in pixels per second
 };
 var monster = {};
-var monstersCaught = 0;
+var monstersCaught1 = 0;
+var monstersCaught2 = 0;
 
 // Handle keyboard controls
 var keysDown = {};
@@ -49,37 +55,64 @@ addEventListener("keyup", function (e) {
 
 // Reset the game when the player catches a monster
 var reset = function () {
-	hero.x = canvas.width / 2;
-	hero.y = canvas.height / 2;
+	hero1.x = canvas.width / 2 - 16;
+	hero1.y = canvas.height / 2;
+        
+        hero2.x = canvas.width / 2 + 16;
+	hero2.y = canvas.height / 2;
 
 	// Throw the monster somewhere on the screen randomly
-	monster.x = 32 + (Math.random() * (canvas.width - 64));
-	monster.y = 32 + (Math.random() * (canvas.height - 64));
+	monster.x = 32 + (Math.random() * (canvas.width - 128));
+	monster.y = 32 + (Math.random() * (canvas.height - 128));
 };
 
 // Update game objects
 var update = function (modifier) {
+        //player 1 controls 
 	if (38 in keysDown) { // Player holding up
-		hero.y -= hero.speed * modifier;
+		hero1.y -= hero1.speed * modifier;
 	}
 	if (40 in keysDown) { // Player holding down
-		hero.y += hero.speed * modifier;
+		hero1.y += hero1.speed * modifier;
 	}
 	if (37 in keysDown) { // Player holding left
-		hero.x -= hero.speed * modifier;
+		hero1.x -= hero1.speed * modifier;
 	}
 	if (39 in keysDown) { // Player holding right
-		hero.x += hero.speed * modifier;
+		hero1.x += hero1.speed * modifier;
+	}
+        
+        //player 2 controls
+        if (87 in keysDown) { // Player holding up
+		hero2.y -= hero2.speed * modifier;
+	}
+	if (83 in keysDown) { // Player holding down
+		hero2.y += hero2.speed * modifier;
+	}
+	if (65 in keysDown) { // Player holding left
+		hero2.x -= hero2.speed * modifier;
+	}
+	if (68 in keysDown) { // Player holding right
+		hero2.x += hero2.speed * modifier;
 	}
 
 	// Are they touching?
 	if (
-		hero.x <= (monster.x + 32)
-		&& monster.x <= (hero.x + 32)
-		&& hero.y <= (monster.y + 32)
-		&& monster.y <= (hero.y + 32)
+		hero1.x <= (monster.x + 32)
+		&& monster.x <= (hero1.x + 32)
+		&& hero1.y <= (monster.y + 32)
+		&& monster.y <= (hero1.y + 32)
 	) {
-		++monstersCaught;
+		++monstersCaught1;
+		reset();
+	}
+        if (
+		hero2.x <= (monster.x + 32)
+		&& monster.x <= (hero2.x + 32)
+		&& hero2.y <= (monster.y + 32)
+		&& monster.y <= (hero2.y + 32)
+	) {
+		++monstersCaught2;
 		reset();
 	}
 };
@@ -91,7 +124,8 @@ var render = function () {
 	}
 
 	if (heroReady) {
-		ctx.drawImage(heroImage, hero.x, hero.y);
+		ctx.drawImage(heroImage, hero1.x - 16, hero1.y);
+                ctx.drawImage(heroImage, hero2.x + 16, hero2.y);
 	}
 
 	if (monsterReady) {
@@ -103,7 +137,8 @@ var render = function () {
 	ctx.font = "24px Helvetica";
 	ctx.textAlign = "left";
 	ctx.textBaseline = "top";
-	ctx.fillText("Goblins caught: " + monstersCaught, 32, 32);
+	ctx.fillText("Player1 caught: " + monstersCaught1, 32, 0);
+        ctx.fillText("Player2 caught: " + monstersCaught2, 32, 32);
 };
 
 // The main game loop
